@@ -8,6 +8,9 @@ import java.util.Map;
  * not draw the output correctly.
  */
 public class Rasterer {
+    private final int minDepth = 0;
+    private final int maxDepth = 7;
+    private final double MAX_LONG_DPP = calculateDpp(MapServer.ROOT_ULLON, MapServer.ROOT_LRLON, MapServer.TILE_SIZE);
 
     public Rasterer() {
         // YOUR CODE HERE
@@ -43,10 +46,32 @@ public class Rasterer {
      */
     public Map<String, Object> getMapRaster(Map<String, Double> params) {
         // System.out.println(params);
+        double queryLongDpp = calculateDpp(params.get("ullon"), params.get("lrlon"), params.get("w"));
+        int depth = findDepth(queryLongDpp);
         Map<String, Object> results = new HashMap<>();
         System.out.println("Since you haven't implemented getMapRaster, nothing is displayed in "
                            + "your browser.");
+        System.out.println(depth);
         return results;
+    }
+
+    public double calculateDpp(double startingCoordinate, double endingCoordinate, double width) {
+        return Math.abs(startingCoordinate - endingCoordinate) / width;
+    }
+
+    public int findDepth(double queryLongDpp) {
+        double estimatedDepth = Math.log(MAX_LONG_DPP / queryLongDpp) / Math.log(2);
+        Double depth = Math.ceil(estimatedDepth);
+
+        if (depth <= minDepth) {
+            return minDepth;
+        }
+
+        if (depth >= maxDepth) {
+            return maxDepth;
+        }
+
+        return depth.intValue();
     }
 
 }
