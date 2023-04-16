@@ -8,8 +8,8 @@ import java.util.Map;
  * not draw the output correctly.
  */
 public class Rasterer {
-    private final int minDepth = 0;
-    private final int maxDepth = 7;
+    private final int MIN_DEPTH = 0;
+    private final int MAX_DEPTH = 7;
     private final int LONG_DIRECTION = 1;
     private final int LAT_DIRECTION = -1;
     private final double MAX_LONG_DPP = calculateDpp(MapServer.ROOT_ULLON, MapServer.ROOT_LRLON, MapServer.TILE_SIZE);
@@ -79,12 +79,12 @@ public class Rasterer {
         double estimatedDepth = Math.log(MAX_LONG_DPP / queryLongDpp) / Math.log(2);
         Double depth = Math.ceil(estimatedDepth);
 
-        if (depth <= minDepth) {
-            return minDepth;
+        if (depth <= MIN_DEPTH) {
+            return MIN_DEPTH;
         }
 
-        if (depth >= maxDepth) {
-            return maxDepth;
+        if (depth >= MAX_DEPTH) {
+            return MAX_DEPTH;
         }
 
         return depth.intValue();
