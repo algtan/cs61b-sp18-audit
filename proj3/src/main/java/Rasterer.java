@@ -10,6 +10,8 @@ import java.util.Map;
 public class Rasterer {
     private final int minDepth = 0;
     private final int maxDepth = 7;
+    private final int LONG_DIRECTION = 1;
+    private final int LAT_DIRECTION = -1;
     private final double MAX_LONG_DPP = calculateDpp(MapServer.ROOT_ULLON, MapServer.ROOT_LRLON, MapServer.TILE_SIZE);
 
     public Rasterer() {
@@ -46,12 +48,26 @@ public class Rasterer {
      */
     public Map<String, Object> getMapRaster(Map<String, Double> params) {
         // System.out.println(params);
-        double queryLongDpp = calculateDpp(params.get("ullon"), params.get("lrlon"), params.get("w"));
+        double queryStartingLong = params.get("ullon");
+        double queryEndingLong = params.get("lrlon");
+        double queryStartingLat = params.get("ullat");
+        double queryEndingLat = params.get("lrlat");
+
+        double queryLongDpp = calculateDpp(queryStartingLong, queryEndingLong, params.get("w"));
         int depth = findDepth(queryLongDpp);
+        int startingXTile = findTile(depth, queryStartingLong, CoordinateType.LONGITUDE);
+        int endingXTile = findTile(depth, queryEndingLong, CoordinateType.LONGITUDE);
+        int startingYTile = findTile(depth, queryStartingLat, CoordinateType.LATITUDE);
+        int endingYTile = findTile(depth, queryEndingLat, CoordinateType.LATITUDE);
+
         Map<String, Object> results = new HashMap<>();
         System.out.println("Since you haven't implemented getMapRaster, nothing is displayed in "
                            + "your browser.");
-        System.out.println(depth);
+        System.out.println("depth: " + String.valueOf(depth));
+        System.out.println("starting X tile: " + String.valueOf(startingXTile));
+        System.out.println("ending X tile: " + String.valueOf(endingXTile));
+        System.out.println("starting Y tile: " + String.valueOf(startingYTile));
+        System.out.println("ending Y tile: " + String.valueOf(endingYTile));
         return results;
     }
 
@@ -74,4 +90,38 @@ public class Rasterer {
         return depth.intValue();
     }
 
+    public int findTile(int depth, double queryCoordinate, CoordinateType coordinateType) {
+        int minTile = 0;
+        int maxTilesInDirection = (int) Math.pow(2, depth);
+        int maxTile = maxTilesInDirection - 1;
+
+        double startingCoordinate = MapServer.ROOT_ULLON;
+        double endingCoordinate = MapServer.ROOT_LRLON;
+        int direction = LONG_DIRECTION;
+
+        if (coordinateType == CoordinateType.LATITUDE) {
+            startingCoordinate = MapServer.ROOT_ULLAT;
+            endingCoordinate = MapServer.ROOT_LRLAT;
+            direction = LAT_DIRECTION;
+        }
+
+        double rasterDpp = calculateDpp(startingCoordinate, endingCoordinate, MapServer.TILE_SIZE * maxTilesInDirection);
+        double estimatedTile = (queryCoordinate - startingCoordinate) * direction / rasterDpp / MapServer.TILE_SIZE;
+        Double tile = Math.floor(estimatedTile);
+
+        if (tile <= minTile) {
+            return minTile;
+        }
+
+        if (tile >= maxTile) {
+            return maxTile;
+        }
+
+        return tile.intValue();
+    }
+
+    private enum CoordinateType {
+        LONGITUDE,
+        LATITUDE
+    }
 }
