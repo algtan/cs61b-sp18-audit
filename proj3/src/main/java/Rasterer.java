@@ -64,6 +64,11 @@ public class Rasterer {
         int startingYTile = findTile(depth, rasterLatDpp, queryStartingLat, CoordinateType.LATITUDE);
         int endingYTile = findTile(depth, rasterLatDpp, queryEndingLat, CoordinateType.LATITUDE);
 
+        double rasterUllon = findTileCornerCoordinate(startingXTile, rasterLonDpp, CoordinateType.LONGITUDE, TileCorner.UL);
+        double rasterLrlon = findTileCornerCoordinate(endingXTile, rasterLonDpp, CoordinateType.LONGITUDE, TileCorner.LR);
+        double rasterUllat = findTileCornerCoordinate(startingYTile, rasterLatDpp, CoordinateType.LATITUDE, TileCorner.UL);
+        double rasterLrlat = findTileCornerCoordinate(endingYTile, rasterLatDpp, CoordinateType.LATITUDE, TileCorner.LR);
+
         Map<String, Object> results = new HashMap<>();
         System.out.println("Since you haven't implemented getMapRaster, nothing is displayed in "
                            + "your browser.");
@@ -72,6 +77,10 @@ public class Rasterer {
         System.out.println("ending X tile: " + String.valueOf(endingXTile));
         System.out.println("starting Y tile: " + String.valueOf(startingYTile));
         System.out.println("ending Y tile: " + String.valueOf(endingYTile));
+        System.out.println("raster ullon: " + String.valueOf(rasterUllon));
+        System.out.println("raster lrlon: " + String.valueOf(rasterLrlon));
+        System.out.println("raster ullat: " + String.valueOf(rasterUllat));
+        System.out.println("raster lrlat: " + String.valueOf(rasterLrlat));
         return results;
     }
 
@@ -119,8 +128,31 @@ public class Rasterer {
         return tile.intValue();
     }
 
+    public double findTileCornerCoordinate(int tile, double rasterDpp, CoordinateType coordinateType, TileCorner tileCorner) {
+        double startingCoordinate = MapServer.ROOT_ULLON;
+        int direction = LON_DIRECTION;
+
+        if (coordinateType == CoordinateType.LATITUDE) {
+            startingCoordinate = MapServer.ROOT_ULLAT;
+            direction = LAT_DIRECTION;
+        }
+
+        double coordinate = startingCoordinate + (direction * tile * rasterDpp * MapServer.TILE_SIZE);
+
+        if (tileCorner == TileCorner.LR) {
+            coordinate = coordinate + (direction * rasterDpp * MapServer.TILE_SIZE);
+        }
+
+        return coordinate;
+    }
+
     private enum CoordinateType {
         LONGITUDE,
         LATITUDE
+    }
+
+    private enum TileCorner {
+        UL,
+        LR
     }
 }
