@@ -11,9 +11,9 @@ public class Rasterer {
     private final int MIN_DEPTH = 0;
     private final int MAX_DEPTH = 7;
     private final int MIN_TILE = 0;
-    private final int LONG_DIRECTION = 1;
+    private final int LON_DIRECTION = 1;
     private final int LAT_DIRECTION = -1;
-    private final double MAX_LONG_DPP = calculateDpp(MapServer.ROOT_ULLON, MapServer.ROOT_LRLON, MapServer.TILE_SIZE);
+    private final double MAX_LON_DPP = calculateDpp(MapServer.ROOT_ULLON, MapServer.ROOT_LRLON, MapServer.TILE_SIZE);
 
     public Rasterer() {
         // YOUR CODE HERE
@@ -49,18 +49,18 @@ public class Rasterer {
      */
     public Map<String, Object> getMapRaster(Map<String, Double> params) {
         // System.out.println(params);
-        double queryStartingLong = params.get("ullon");
-        double queryEndingLong = params.get("lrlon");
+        double queryStartingLon = params.get("ullon");
+        double queryEndingLon = params.get("lrlon");
         double queryStartingLat = params.get("ullat");
         double queryEndingLat = params.get("lrlat");
 
-        double queryLongDpp = calculateDpp(queryStartingLong, queryEndingLong, params.get("w"));
-        int depth = findDepth(queryLongDpp);
-        double rasterLongDpp = calculateDpp(MapServer.ROOT_ULLON, MapServer.ROOT_LRLON, MapServer.TILE_SIZE * Math.pow(2, depth));
+        double queryLonDpp = calculateDpp(queryStartingLon, queryEndingLon, params.get("w"));
+        int depth = findDepth(queryLonDpp);
+        double rasterLonDpp = calculateDpp(MapServer.ROOT_ULLON, MapServer.ROOT_LRLON, MapServer.TILE_SIZE * Math.pow(2, depth));
         double rasterLatDpp = calculateDpp(MapServer.ROOT_ULLAT, MapServer.ROOT_LRLAT, MapServer.TILE_SIZE * Math.pow(2, depth));
 
-        int startingXTile = findTile(depth, rasterLongDpp, queryStartingLong, CoordinateType.LONGITUDE);
-        int endingXTile = findTile(depth, rasterLongDpp, queryEndingLong, CoordinateType.LONGITUDE);
+        int startingXTile = findTile(depth, rasterLonDpp, queryStartingLon, CoordinateType.LONGITUDE);
+        int endingXTile = findTile(depth, rasterLonDpp, queryEndingLon, CoordinateType.LONGITUDE);
         int startingYTile = findTile(depth, rasterLatDpp, queryStartingLat, CoordinateType.LATITUDE);
         int endingYTile = findTile(depth, rasterLatDpp, queryEndingLat, CoordinateType.LATITUDE);
 
@@ -79,8 +79,8 @@ public class Rasterer {
         return Math.abs(startingCoordinate - endingCoordinate) / width;
     }
 
-    public int findDepth(double queryLongDpp) {
-        double estimatedDepth = Math.log(MAX_LONG_DPP / queryLongDpp) / Math.log(2);
+    public int findDepth(double queryLonDpp) {
+        double estimatedDepth = Math.log(MAX_LON_DPP / queryLonDpp) / Math.log(2);
         Double depth = Math.ceil(estimatedDepth);
 
         if (depth <= MIN_DEPTH) {
@@ -98,7 +98,7 @@ public class Rasterer {
         int maxTile = (int) Math.pow(2, depth) - 1;
 
         double startingCoordinate = MapServer.ROOT_ULLON;
-        int direction = LONG_DIRECTION;
+        int direction = LON_DIRECTION;
 
         if (coordinateType == CoordinateType.LATITUDE) {
             startingCoordinate = MapServer.ROOT_ULLAT;
