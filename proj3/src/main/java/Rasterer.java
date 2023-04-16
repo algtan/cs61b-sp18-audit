@@ -10,6 +10,7 @@ import java.util.Map;
 public class Rasterer {
     private final int MIN_DEPTH = 0;
     private final int MAX_DEPTH = 7;
+    private final int MIN_TILE = 0;
     private final int LONG_DIRECTION = 1;
     private final int LAT_DIRECTION = -1;
     private final double MAX_LONG_DPP = calculateDpp(MapServer.ROOT_ULLON, MapServer.ROOT_LRLON, MapServer.TILE_SIZE);
@@ -55,10 +56,13 @@ public class Rasterer {
 
         double queryLongDpp = calculateDpp(queryStartingLong, queryEndingLong, params.get("w"));
         int depth = findDepth(queryLongDpp);
-        int startingXTile = findTile(depth, queryStartingLong, CoordinateType.LONGITUDE);
-        int endingXTile = findTile(depth, queryEndingLong, CoordinateType.LONGITUDE);
-        int startingYTile = findTile(depth, queryStartingLat, CoordinateType.LATITUDE);
-        int endingYTile = findTile(depth, queryEndingLat, CoordinateType.LATITUDE);
+        double rasterLongDpp = calculateDpp(MapServer.ROOT_ULLON, MapServer.ROOT_LRLON, MapServer.TILE_SIZE * Math.pow(2, depth));
+        double rasterLatDpp = calculateDpp(MapServer.ROOT_ULLAT, MapServer.ROOT_LRLAT, MapServer.TILE_SIZE * Math.pow(2, depth));
+
+        int startingXTile = findTile(depth, rasterLongDpp, queryStartingLong, CoordinateType.LONGITUDE);
+        int endingXTile = findTile(depth, rasterLongDpp, queryEndingLong, CoordinateType.LONGITUDE);
+        int startingYTile = findTile(depth, rasterLatDpp, queryStartingLat, CoordinateType.LATITUDE);
+        int endingYTile = findTile(depth, rasterLatDpp, queryEndingLat, CoordinateType.LATITUDE);
 
         Map<String, Object> results = new HashMap<>();
         System.out.println("Since you haven't implemented getMapRaster, nothing is displayed in "
@@ -90,27 +94,22 @@ public class Rasterer {
         return depth.intValue();
     }
 
-    public int findTile(int depth, double queryCoordinate, CoordinateType coordinateType) {
-        int minTile = 0;
-        int maxTilesInDirection = (int) Math.pow(2, depth);
-        int maxTile = maxTilesInDirection - 1;
+    public int findTile(int depth, double rasterDpp, double queryCoordinate, CoordinateType coordinateType) {
+        int maxTile = (int) Math.pow(2, depth) - 1;
 
         double startingCoordinate = MapServer.ROOT_ULLON;
-        double endingCoordinate = MapServer.ROOT_LRLON;
         int direction = LONG_DIRECTION;
 
         if (coordinateType == CoordinateType.LATITUDE) {
             startingCoordinate = MapServer.ROOT_ULLAT;
-            endingCoordinate = MapServer.ROOT_LRLAT;
             direction = LAT_DIRECTION;
         }
 
-        double rasterDpp = calculateDpp(startingCoordinate, endingCoordinate, MapServer.TILE_SIZE * maxTilesInDirection);
         double estimatedTile = (queryCoordinate - startingCoordinate) * direction / rasterDpp / MapServer.TILE_SIZE;
         Double tile = Math.floor(estimatedTile);
 
-        if (tile <= minTile) {
-            return minTile;
+        if (tile <= MIN_TILE) {
+            return MIN_TILE;
         }
 
         if (tile >= maxTile) {
