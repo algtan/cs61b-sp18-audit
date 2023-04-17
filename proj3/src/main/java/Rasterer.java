@@ -48,7 +48,6 @@ public class Rasterer {
      *                    forget to set this to true on success! <br>
      */
     public Map<String, Object> getMapRaster(Map<String, Double> params) {
-        // System.out.println(params);
         double queryStartingLon = params.get("ullon");
         double queryEndingLon = params.get("lrlon");
         double queryStartingLat = params.get("ullat");
@@ -69,18 +68,16 @@ public class Rasterer {
         double rasterUllat = findTileCornerCoordinate(startingYTile, rasterLatDpp, CoordinateType.LATITUDE, TileCorner.UL);
         double rasterLrlat = findTileCornerCoordinate(endingYTile, rasterLatDpp, CoordinateType.LATITUDE, TileCorner.LR);
 
+        String[][] renderGrid = buildRenderGrid(depth, startingXTile, endingXTile, startingYTile, endingYTile);
+
         Map<String, Object> results = new HashMap<>();
-        System.out.println("Since you haven't implemented getMapRaster, nothing is displayed in "
-                           + "your browser.");
-        System.out.println("depth: " + String.valueOf(depth));
-        System.out.println("starting X tile: " + String.valueOf(startingXTile));
-        System.out.println("ending X tile: " + String.valueOf(endingXTile));
-        System.out.println("starting Y tile: " + String.valueOf(startingYTile));
-        System.out.println("ending Y tile: " + String.valueOf(endingYTile));
-        System.out.println("raster ullon: " + String.valueOf(rasterUllon));
-        System.out.println("raster lrlon: " + String.valueOf(rasterLrlon));
-        System.out.println("raster ullat: " + String.valueOf(rasterUllat));
-        System.out.println("raster lrlat: " + String.valueOf(rasterLrlat));
+        results.put("depth", depth);
+        results.put("raster_ul_lon", rasterUllon);
+        results.put("raster_ul_lat", rasterUllat);
+        results.put("raster_lr_lon", rasterLrlon);
+        results.put("raster_lr_lat", rasterLrlat);
+        results.put("render_grid", renderGrid);
+        results.put("query_success", true);
         return results;
     }
 
@@ -144,6 +141,18 @@ public class Rasterer {
         }
 
         return coordinate;
+    }
+
+    public String[][] buildRenderGrid(int depth, int startingXTile, int endingXTile, int startingYTile, int endingYTile) {
+        String[][] renderGrid = new String[endingYTile - startingYTile + 1][endingXTile - startingXTile + 1];
+
+        for (int i = startingYTile; i <= endingYTile; i++) {
+            for (int j = startingXTile; j <= endingXTile; j++) {
+                renderGrid[i - startingYTile][j - startingXTile] = "d" + depth + "_x" + j + "_y" + i + ".png";
+            }
+        }
+
+        return renderGrid;
     }
 
     private enum CoordinateType {
