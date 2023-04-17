@@ -13,7 +13,8 @@ public class Rasterer {
     private final int MIN_TILE = 0;
     private final int LON_DIRECTION = 1;
     private final int LAT_DIRECTION = -1;
-    private final double MAX_LON_DPP = calculateDpp(MapServer.ROOT_ULLON, MapServer.ROOT_LRLON, MapServer.TILE_SIZE);
+    private final double MAX_LON_DPP = calculateDpp(MapServer.ROOT_ULLON, MapServer.ROOT_LRLON,
+                                                    MapServer.TILE_SIZE);
 
     public Rasterer() {
         // YOUR CODE HERE
@@ -55,20 +56,31 @@ public class Rasterer {
 
         double queryLonDpp = calculateDpp(queryStartingLon, queryEndingLon, params.get("w"));
         int depth = findDepth(queryLonDpp);
-        double rasterLonDpp = calculateDpp(MapServer.ROOT_ULLON, MapServer.ROOT_LRLON, MapServer.TILE_SIZE * Math.pow(2, depth));
-        double rasterLatDpp = calculateDpp(MapServer.ROOT_ULLAT, MapServer.ROOT_LRLAT, MapServer.TILE_SIZE * Math.pow(2, depth));
+        double rasterLonDpp = calculateDpp(MapServer.ROOT_ULLON, MapServer.ROOT_LRLON,
+                                     MapServer.TILE_SIZE * Math.pow(2, depth));
+        double rasterLatDpp = calculateDpp(MapServer.ROOT_ULLAT, MapServer.ROOT_LRLAT,
+                                     MapServer.TILE_SIZE * Math.pow(2, depth));
 
-        int startingXTile = findTile(depth, rasterLonDpp, queryStartingLon, CoordinateType.LONGITUDE);
-        int endingXTile = findTile(depth, rasterLonDpp, queryEndingLon, CoordinateType.LONGITUDE);
-        int startingYTile = findTile(depth, rasterLatDpp, queryStartingLat, CoordinateType.LATITUDE);
-        int endingYTile = findTile(depth, rasterLatDpp, queryEndingLat, CoordinateType.LATITUDE);
+        int startingXTile = findTile(depth, rasterLonDpp, queryStartingLon,
+                                     CoordinateType.LONGITUDE);
+        int endingXTile = findTile(depth, rasterLonDpp, queryEndingLon,
+                                   CoordinateType.LONGITUDE);
+        int startingYTile = findTile(depth, rasterLatDpp, queryStartingLat,
+                                     CoordinateType.LATITUDE);
+        int endingYTile = findTile(depth, rasterLatDpp, queryEndingLat,
+                                   CoordinateType.LATITUDE);
 
-        double rasterUllon = findTileCornerCoordinate(startingXTile, rasterLonDpp, CoordinateType.LONGITUDE, TileCorner.UL);
-        double rasterLrlon = findTileCornerCoordinate(endingXTile, rasterLonDpp, CoordinateType.LONGITUDE, TileCorner.LR);
-        double rasterUllat = findTileCornerCoordinate(startingYTile, rasterLatDpp, CoordinateType.LATITUDE, TileCorner.UL);
-        double rasterLrlat = findTileCornerCoordinate(endingYTile, rasterLatDpp, CoordinateType.LATITUDE, TileCorner.LR);
+        double rasterUllon = findTileCornerCoordinate(startingXTile, rasterLonDpp,
+                                                      CoordinateType.LONGITUDE, TileCorner.UL);
+        double rasterLrlon = findTileCornerCoordinate(endingXTile, rasterLonDpp,
+                                                      CoordinateType.LONGITUDE, TileCorner.LR);
+        double rasterUllat = findTileCornerCoordinate(startingYTile, rasterLatDpp,
+                                                      CoordinateType.LATITUDE, TileCorner.UL);
+        double rasterLrlat = findTileCornerCoordinate(endingYTile, rasterLatDpp,
+                                                      CoordinateType.LATITUDE, TileCorner.LR);
 
-        String[][] renderGrid = buildRenderGrid(depth, startingXTile, endingXTile, startingYTile, endingYTile);
+        String[][] renderGrid = buildRenderGrid(depth, startingXTile, endingXTile,
+                                                startingYTile, endingYTile);
 
         Map<String, Object> results = new HashMap<>();
         results.put("depth", depth);
@@ -100,7 +112,8 @@ public class Rasterer {
         return depth.intValue();
     }
 
-    public int findTile(int depth, double rasterDpp, double queryCoordinate, CoordinateType coordinateType) {
+    public int findTile(int depth, double rasterDpp, double queryCoordinate,
+                        CoordinateType coordinateType) {
         int maxTile = (int) Math.pow(2, depth) - 1;
 
         double startingCoordinate = MapServer.ROOT_ULLON;
@@ -111,7 +124,8 @@ public class Rasterer {
             direction = LAT_DIRECTION;
         }
 
-        double estimatedTile = (queryCoordinate - startingCoordinate) * direction / rasterDpp / MapServer.TILE_SIZE;
+        double estimatedTile = (queryCoordinate - startingCoordinate)
+                * direction / rasterDpp / MapServer.TILE_SIZE;
         Double tile = Math.floor(estimatedTile);
 
         if (tile <= MIN_TILE) {
@@ -125,7 +139,8 @@ public class Rasterer {
         return tile.intValue();
     }
 
-    public double findTileCornerCoordinate(int tile, double rasterDpp, CoordinateType coordinateType, TileCorner tileCorner) {
+    public double findTileCornerCoordinate(int tile, double rasterDpp,
+                                           CoordinateType coordinateType, TileCorner tileCorner) {
         double startingCoordinate = MapServer.ROOT_ULLON;
         int direction = LON_DIRECTION;
 
@@ -134,7 +149,8 @@ public class Rasterer {
             direction = LAT_DIRECTION;
         }
 
-        double coordinate = startingCoordinate + (direction * tile * rasterDpp * MapServer.TILE_SIZE);
+        double coordinate = startingCoordinate
+                + (direction * tile * rasterDpp * MapServer.TILE_SIZE);
 
         if (tileCorner == TileCorner.LR) {
             coordinate = coordinate + (direction * rasterDpp * MapServer.TILE_SIZE);
@@ -143,12 +159,15 @@ public class Rasterer {
         return coordinate;
     }
 
-    public String[][] buildRenderGrid(int depth, int startingXTile, int endingXTile, int startingYTile, int endingYTile) {
-        String[][] renderGrid = new String[endingYTile - startingYTile + 1][endingXTile - startingXTile + 1];
+    public String[][] buildRenderGrid(int depth, int startingXTile, int endingXTile,
+                                      int startingYTile, int endingYTile) {
+        String[][] renderGrid =
+                new String[endingYTile - startingYTile + 1][endingXTile - startingXTile + 1];
 
         for (int i = startingYTile; i <= endingYTile; i++) {
             for (int j = startingXTile; j <= endingXTile; j++) {
-                renderGrid[i - startingYTile][j - startingXTile] = "d" + depth + "_x" + j + "_y" + i + ".png";
+                renderGrid[i - startingYTile][j - startingXTile] = "d" + depth + "_x" + j
+                                                                    + "_y" + i + ".png";
             }
         }
 
