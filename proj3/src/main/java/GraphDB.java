@@ -92,7 +92,7 @@ public class GraphDB {
      *  we can reasonably assume this since typically roads are connected.
      */
     private void clean() {
-        // TODO: Your code here.
+        nodes.entrySet().removeIf(entry -> !edges.containsKey(entry.getKey()));
     }
 
     /**
