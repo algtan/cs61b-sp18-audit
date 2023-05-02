@@ -41,7 +41,8 @@ public class Router {
 
             Iterable<Long> adjacentNodes = g.adjacent(currentNodeId);
             for (long adjNode : adjacentNodes) {
-                double adjNodeDistFromSrc = g.bestKnownDistance.get(currentNodeId) + g.distance(currentNodeId, adjNode);
+                double adjNodeDistFromSrc = g.bestKnownDistance.get(currentNodeId)
+                        + g.distance(currentNodeId, adjNode);
                 double adjNodePriority = adjNodeDistFromSrc + g.distance(adjNode, destinationNode);
 
                 if (adjNodeDistFromSrc < g.bestKnownDistance.get(adjNode)) {

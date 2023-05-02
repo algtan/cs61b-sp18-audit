@@ -109,11 +109,11 @@ public class GraphDB {
     }
 
     public void initializeBest() {
-        Map<Long, Double> bestKnownDistance = new HashMap<>();
+        Map<Long, Double> bestKnownDistanceMap = new HashMap<>();
         for (long node: nodes.keySet()) {
-            bestKnownDistance.put(node, Double.POSITIVE_INFINITY);
+            bestKnownDistanceMap.put(node, Double.POSITIVE_INFINITY);
         }
-        this.bestKnownDistance = bestKnownDistance;
+        this.bestKnownDistance = bestKnownDistanceMap;
 
         this.bestParent = new HashMap<>();
     }
