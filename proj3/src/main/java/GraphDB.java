@@ -7,9 +7,11 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.PriorityQueue;
 
 /**
  * Graph for storing all of the intersection (vertex) and road (edge) information.
@@ -25,6 +27,9 @@ public class GraphDB {
      * creating helper classes, e.g. Node, Edge, etc. */
     Map<Long, GraphDBNode> nodes;
     Map<Long, List<Long>> edges;
+    PriorityQueue<Vertex> priorityQueue;
+    Map<Long, Double> bestKnownDistance;
+    Map<Long, Long> bestParent;
 
     public class GraphDBNode {
         private double lat;
@@ -45,6 +50,39 @@ public class GraphDB {
     }
 
 
+    public class Vertex {
+        private long nodeId;
+        private double priority;
+
+        public Vertex(long nodeId, double priority) {
+            this.nodeId = nodeId;
+            this.priority = priority;
+        }
+
+        public long getNodeId() {
+            return nodeId;
+        }
+
+        public double getPriority() {
+            return priority;
+        }
+    }
+
+    public class VertexComparator implements Comparator<Vertex> {
+        @Override
+        public int compare(Vertex v1, Vertex v2) {
+            if (v1.getPriority() > v2.getPriority()) {
+                return 1;
+            }
+
+            if (v1.getPriority() < v2.getPriority()) {
+                return -1;
+            }
+
+            return 0;
+        }
+    }
+
     /**
      * Example constructor shows how to create and start an XML parser.
      * You do not need to modify this constructor, but you're welcome to do so.
@@ -54,6 +92,7 @@ public class GraphDB {
         try {
             nodes = new HashMap<>();
             edges = new HashMap<>();
+            priorityQueue = new PriorityQueue(new VertexComparator());
 
             File inputFile = new File(dbPath);
             FileInputStream inputStream = new FileInputStream(inputFile);
@@ -67,6 +106,16 @@ public class GraphDB {
             e.printStackTrace();
         }
         clean();
+    }
+
+    public void initializeBest() {
+        Map<Long, Double> bestKnownDistance = new HashMap<>();
+        for (long node: nodes.keySet()) {
+            bestKnownDistance.put(node, Double.POSITIVE_INFINITY);
+        }
+        this.bestKnownDistance = bestKnownDistance;
+
+        this.bestParent = new HashMap<>();
     }
 
     /**
@@ -211,5 +260,10 @@ public class GraphDB {
             List<Long> currentList = edges.get(key);
             currentList.addAll(entry.getValue());
         }
+    }
+
+    void addVertexToPQ(long id, double priority) {
+        Vertex v = new Vertex(id, priority);
+        priorityQueue.add(v);
     }
 }

@@ -1,3 +1,4 @@
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.regex.Matcher;
@@ -25,7 +26,40 @@ public class Router {
      */
     public static List<Long> shortestPath(GraphDB g, double stlon, double stlat,
                                           double destlon, double destlat) {
-        return null; // FIXME
+        long startingNode = g.closest(stlon, stlat);
+        long destinationNode = g.closest(destlon, destlat);
+        g.initializeBest();
+        g.addVertexToPQ(startingNode, g.distance(startingNode, destinationNode));
+        g.bestKnownDistance.put(startingNode, 0.0);
+
+        while (g.priorityQueue.size() > 0) {
+            GraphDB.Vertex currentVertex = g.priorityQueue.poll();
+            long currentNodeId = currentVertex.getNodeId();
+            if (currentNodeId == destinationNode) {
+                break;
+            }
+
+            Iterable<Long> adjacentNodes = g.adjacent(currentNodeId);
+            for (long adjNode : adjacentNodes) {
+                double adjNodeDistFromSrc = g.bestKnownDistance.get(currentNodeId) + g.distance(currentNodeId, adjNode);
+                double adjNodePriority = adjNodeDistFromSrc + g.distance(adjNode, destinationNode);
+
+                if (adjNodeDistFromSrc < g.bestKnownDistance.get(adjNode)) {
+                    g.bestParent.put(adjNode, currentNodeId);
+                    g.bestKnownDistance.put(adjNode, adjNodeDistFromSrc);
+                    g.addVertexToPQ(adjNode, adjNodePriority);
+                }
+            }
+        }
+
+        Long currentNode = destinationNode;
+        LinkedList<Long> shortestPath = new LinkedList<>();
+        while (currentNode != null) {
+            shortestPath.addFirst(currentNode);
+            currentNode = g.bestParent.get(currentNode);
+        }
+
+        return shortestPath;
     }
 
     /**
